@@ -7,3 +7,7 @@ def read_json_file(file_path):
             return json.load(json_file)
     else:
         return "File not found."
+
+def create_json_file(file_path, data):
+    with open(file_path, 'w') as json_file:
+        json.dump(data, json_file, indent=4)

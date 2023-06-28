@@ -104,6 +104,24 @@ class Bet(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def list(self, ctx):
+        stored_bets = read_json_file(self.storage_path)
+        author = str(ctx.author.id)
+        
+        embed = Embed()
+        embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar.url)
+        if author in stored_bets and len(stored_bets[author]['bets']) > 0:
+
+            for bet_hash, bet in stored_bets[author]['bets'].items():
+                embed.add_field(name=bet_hash, value=bet['content'], inline=False)
+
+            await ctx.send(embed=embed)
+        else:
+            embed.add_field(name="Pas de prédictions trouvées", value="", inline=False)
+            await ctx.send(embed=embed)
+
+
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
         if user.bot:

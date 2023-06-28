@@ -1,9 +1,11 @@
 from discord.ext import commands
-from discord import Embed
+from discord import Embed, ButtonStyle, ui
 from dotenv import dotenv_values
 
 import os
 from hashlib import blake2s
+from datetime import datetime
+import locale
 
 from utils import read_json_file, create_json_file
 
@@ -27,12 +29,25 @@ class Bet(commands.Cog):
         if author not in stored_bets:
             stored_bets[author] = self.initiate_object_author(ctx.author)
         if self.hash_function.hexdigest() not in stored_bets[author]['bets']:
+
             self.hash_function.update(message.encode('utf-8'))
-            stored_bets[author]['bets'][self.hash_function.hexdigest()] = message
+            bet_hash = self.hash_function.hexdigest()
+            current_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+            stored_bets[author]['bets'][bet_hash] = {
+                'content': message,
+                'timestamp': current_timestamp,
+                'positive': [],
+                'negative': [],
+            }
 
             create_json_file(self.storage_path, stored_bets)
-            
+
             await ctx.send(f'prédiction mémorisée, ID: {self.hash_function.hexdigest()}')
+
+            embed = Embed(title=f':game_die: NOUVELLE PRÉDICTION :sparkles:', description= f':crystal_ball: {message}')
+            await ctx.send(embed=embed)
+
         else:
             await ctx.send(f'prédiction déjà mémorisée')
 
@@ -48,7 +63,7 @@ class Bet(commands.Cog):
             embed.set_author(name=data['infos']['name'], icon_url=data['infos']['avatar'])
 
             for id_bet, bet in data['bets'].items():
-                embed.add_field(name=f"prédiction ID {id_bet}", value=bet + '\n', inline=False)
+                embed.add_field(name=f"prédiction ID {id_bet}", value=bet['content'], inline=False)
 
         await ctx.send(embed=embed)
 

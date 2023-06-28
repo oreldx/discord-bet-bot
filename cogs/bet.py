@@ -1,8 +1,10 @@
 from discord.ext import commands
-from discord import Embed
+from discord import Embed, utils
 from dotenv import dotenv_values
 
 import os
+import asyncio
+
 from hashlib import blake2s
 from datetime import datetime
 import locale
@@ -72,15 +74,33 @@ class Bet(commands.Cog):
     @commands.command()
     async def show(self, ctx):
         stored_bets = read_json_file(self.storage_path)
-        for user, data in stored_bets.items():
+
+        emojis = {
+            'negative': '🔴', 
+            'positive': '🔵',
+        }
+
+        for data in stored_bets.values():
             title = 'Prédiction'
             if len(data['bets'].keys()) > 1:
                 title += 's'
             embed = Embed(title=title)
             embed.set_author(name=data['infos']['name'], icon_url=data['infos']['avatar'])
 
-            for id_bet, bet in data['bets'].items():
-                embed.add_field(name=f"prédiction ID {id_bet}", value=bet['content'], inline=False)
+            for bet in data['bets'].values():
+                timestamp = datetime.strptime(bet['timestamp'], '%Y-%m-%d %H:%M:%S')
+                print(timestamp)
+                timestamp = timestamp.strftime("%Y-%m-%d")
+                prediction = bet['content']
+                embed.add_field(name=f'[{timestamp}] - {prediction}', value='', inline=False)
+                print('test')
+                for emoji in emojis:
+                    if len(bet[emoji]) > 0:
+                        users = [await self.bot.fetch_user(user) for user in bet[emoji]]
+                        users = [user.name for user in users]
+                        users = (', ').join(users)
+                        name = f'|       {emojis[emoji]} {emoji}'
+                        embed.add_field(name=name, value=users, inline=False)
 
         await ctx.send(embed=embed)
 

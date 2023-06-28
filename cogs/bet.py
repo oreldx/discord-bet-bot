@@ -1,5 +1,5 @@
 from discord.ext import commands
-from discord import Embed, ButtonStyle, ui
+from discord import Embed
 from dotenv import dotenv_values
 
 import os
@@ -30,6 +30,7 @@ class Bet(commands.Cog):
             stored_bets[author] = self.initiate_object_author(ctx.author)
         if self.hash_function.hexdigest() not in stored_bets[author]['bets']:
 
+            message = message.strip()
             self.hash_function.update(message.encode('utf-8'))
             bet_hash = self.hash_function.hexdigest()
             current_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -45,8 +46,13 @@ class Bet(commands.Cog):
 
             await ctx.send(f'prédiction mémorisée, ID: {self.hash_function.hexdigest()}')
 
-            embed = Embed(title=f':game_die: NOUVELLE PRÉDICTION :sparkles:', description= f':crystal_ball: {message}')
-            await ctx.send(embed=embed)
+            embed = Embed(title=f':game_die: NOUVELLE PRÉDICTION :sparkles:', description= f':crystal_ball: -{message}')
+            embed.set_footer(text=f"{bet_hash} créée par {author}")
+
+            message = await ctx.send(embed=embed)
+
+            await message.add_reaction('🔴')
+            await message.add_reaction('🔵')
 
         else:
             await ctx.send(f'prédiction déjà mémorisée')
@@ -77,6 +83,47 @@ class Bet(commands.Cog):
                 embed.add_field(name=f"prédiction ID {id_bet}", value=bet['content'], inline=False)
 
         await ctx.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction, user):
+        if user.bot:
+            return
+        
+        if reaction.message.author.bot:
+
+            users = [user async for user in reaction.users()]
+            intented_message = False
+            for user_reacted in users:
+                if user_reacted.bot:
+                    intented_message = True
+                    break
+
+            if intented_message:
+                stored_bets = read_json_file(self.storage_path)
+                embed = reaction.message.embeds[0]
+                reacting_user = str(user.id)
+                author = embed.footer.text.split(' ')[-1]
+                bet_hash = embed.footer.text.split(' ')[0]
+
+                emoji = str(reaction.emoji)
+                emojis = {
+                    '🔴': 'negative', 
+                    '🔵': 'positive',
+                }
+
+                if emoji in emojis:
+                    # ADD new choice
+                    if reacting_user not in stored_bets[author]['bets'][bet_hash][emojis[emoji]]:
+                        stored_bets[author]['bets'][bet_hash][emojis[emoji]].append(reacting_user)
+                    emojis.pop(emoji)
+
+                    # DEL old possible choice
+                    for other_emoji in emojis.values():
+                        if reacting_user in stored_bets[author]['bets'][bet_hash][other_emoji]:
+                            stored_bets[author]['bets'][bet_hash][other_emoji].remove(reacting_user)
+                            break
+
+                    create_json_file(self.storage_path, stored_bets)
 
 
     def check_storage(self):

@@ -51,6 +51,17 @@ class Bet(commands.Cog):
         else:
             await ctx.send(f'prédiction déjà mémorisée')
 
+    @commands.command()
+    async def delete(self, ctx, bet_hash):
+        stored_bets = read_json_file(self.storage_path)
+        author = str(ctx.author.id)
+        if author in stored_bets and bet_hash in stored_bets[author]['bets']:
+            stored_bets[author]['bets'].pop(bet_hash)
+            create_json_file(self.storage_path, stored_bets)
+
+            await ctx.send(f'prédiction {bet_hash} supprimée')
+        else:
+            await ctx.send(f"aucune prédiction correspondate à l'utilisateur prédiction ou ID de la prédiction incorrect")
 
     @commands.command()
     async def show(self, ctx):
@@ -66,7 +77,6 @@ class Bet(commands.Cog):
                 embed.add_field(name=f"prédiction ID {id_bet}", value=bet['content'], inline=False)
 
         await ctx.send(embed=embed)
-
 
 
     def check_storage(self):

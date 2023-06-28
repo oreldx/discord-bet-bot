@@ -89,11 +89,9 @@ class Bet(commands.Cog):
 
             for bet in data['bets'].values():
                 timestamp = datetime.strptime(bet['timestamp'], '%Y-%m-%d %H:%M:%S')
-                print(timestamp)
                 timestamp = timestamp.strftime("%Y-%m-%d")
                 prediction = bet['content']
                 embed.add_field(name=f'[{timestamp}] - {prediction}', value='', inline=False)
-                print('test')
                 for emoji in emojis:
                     if len(bet[emoji]) > 0:
                         users = [await self.bot.fetch_user(user) for user in bet[emoji]]

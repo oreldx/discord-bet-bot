@@ -3,3 +3,5 @@ creds/*
 .idea/*
 __pycache__
 .env
+
+storage.json

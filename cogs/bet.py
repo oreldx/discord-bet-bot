@@ -19,6 +19,8 @@ class Bet(commands.Cog):
         self.storage_path = env.get("STORAGE_PATH")
         self.check_storage()
 
+        self.bet_channel = int(env.get('BET_CHANNEL_ID'))
+
         self.choices = {
             'binary': { 
                 'negative': '🔴',
@@ -30,6 +32,8 @@ class Bet(commands.Cog):
 
     @commands.command()
     async def create(self, ctx, *, content: str):
+        self.check_correct_channel(ctx)
+
         stored_bets = read_json_file(self.storage_path)
         author = str(ctx.author.id)
 
@@ -61,6 +65,9 @@ class Bet(commands.Cog):
 
     @commands.command()
     async def delete(self, ctx, bet_hash):
+        self.check_correct_channel(ctx)
+
+
         stored_bets = read_json_file(self.storage_path)
         author = str(ctx.author.id)
 
@@ -74,6 +81,8 @@ class Bet(commands.Cog):
         
     @commands.command()
     async def show(self, ctx):
+        self.check_correct_channel(ctx)
+
         stored_bets = read_json_file(self.storage_path)
 
         data = []
@@ -111,6 +120,8 @@ class Bet(commands.Cog):
 
     @commands.command()
     async def list(self, ctx):
+        self.check_correct_channel(ctx)
+
         stored_bets = read_json_file(self.storage_path)
         author = str(ctx.author.id)
         author_name = ctx.author.name
@@ -161,6 +172,9 @@ class Bet(commands.Cog):
 
                     create_json_file(self.storage_path, stored_bets)
 
+    def check_correct_channel(self, ctx):
+        if ctx.channel.id != self.bet_channel:
+            raise commands.CheckFailure("Channel isn't valid!")
 
     def check_storage(self):
         if not os.path.exists(self.storage_path):

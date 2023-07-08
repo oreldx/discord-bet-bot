@@ -1,9 +1,12 @@
-import discord
-from discord.ext import commands
 import os
 import asyncio
 import configparser
+import random
+import json
+
 from dotenv import load_dotenv
+import discord
+from discord.ext import commands, tasks
 
 
 intents = discord.Intents.all()
@@ -26,6 +29,15 @@ async def load():
 @bot.event
 async def on_ready():
     print("Bot is online!")
+    display_status.start()
+
+
+@tasks.loop(seconds=60)
+async def display_status():
+    with open('status.json', 'r') as f:
+        status = json.load(f)
+    game = discord.Game(random.choice(status))
+    await bot.change_presence(status=discord.Status.online, activity=game)
 
 
 async def main():

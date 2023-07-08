@@ -7,6 +7,7 @@ import asyncio
 from hashlib import md5
 from datetime import datetime
 import locale
+import random
 
 from utils import read_json_file, create_json_file
 
@@ -62,6 +63,8 @@ class Bet(commands.Cog):
 
             for choice_emoji in self.choices[bet_type].values():
                 await message.add_reaction(choice_emoji)
+            
+            await message.pin()
 
     @commands.command()
     async def delete(self, ctx, bet_hash):
@@ -213,7 +216,15 @@ class Bet(commands.Cog):
             title = 'Prédiction'
             if len(author['bets']) > 1:
                 title += 's'
-            embed = Embed(title=title)
+
+            
+            high = random.randint(200, 255)
+            mid = random.randint(100, 199)
+            low = random.randint(0, 99)
+            r, g, b = random.sample([high, mid, low], 3)
+            hex_color = int("{:02x}{:02x}{:02x}".format(r, g, b), 16)
+
+            embed = Embed(title=title, color=hex_color)
 
             embed.set_author(name=author['name'], icon_url=author['avatar'])
 
@@ -223,9 +234,10 @@ class Bet(commands.Cog):
                 embed.add_field(name=f'[{timestamp}] - {prediction}', value='', inline=False)
 
                 for choice in bet['choices']:
-                    users = (', ').join(choice['users'])
-                    name = f'|       {choice["choice_emoji"]} {choice["choice_value"]}'
-                    embed.add_field(name=name, value=users, inline=False)
+                    users = ('\n').join(choice['users'])
+                    value =f"```\n{users}\n```"
+                    name = f' {choice["choice_emoji"]} {choice["choice_value"]}'
+                    embed.add_field(name=name, value=value, inline=True)
 
             embeds.append(embed)
 

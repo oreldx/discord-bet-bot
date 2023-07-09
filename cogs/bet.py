@@ -24,8 +24,8 @@ class Bet(commands.Cog):
 
         self.choices = {
             'binary': { 
-                'negative': '🔴',
                 'postive': '🔵',
+                'negative': '🔴',
             },
         }
         self.default_bet_type = 'binary'
@@ -81,6 +81,36 @@ class Bet(commands.Cog):
             create_json_file(self.storage_path, stored_bets)
 
         await ctx.send(self.format_output_delete(possible_deletion, bet_hash))
+        
+    @commands.command()
+    async def close(self, ctx, bet_hash):
+        self.check_correct_channel(ctx)
+
+        stored_bets = read_json_file(self.storage_path)
+        author = str(ctx.author.id)
+
+        possible_closing = author in stored_bets and bet_hash in stored_bets[author]['bets']
+
+        if possible_closing:
+            stored_bets[author]['bets'][bet_hash]['status'] = False
+            create_json_file(self.storage_path, stored_bets)
+
+        await ctx.send(self.format_output_close(possible_closing, bet_hash))
+
+    @commands.command()
+    async def open(self, ctx, bet_hash):
+        self.check_correct_channel(ctx)
+
+        stored_bets = read_json_file(self.storage_path)
+        author = str(ctx.author.id)
+
+        possible_opening = author in stored_bets and bet_hash in stored_bets[author]['bets']
+
+        if possible_opening:
+            stored_bets[author]['bets'][bet_hash]['status'] = True
+            create_json_file(self.storage_path, stored_bets)
+
+        await ctx.send(self.format_output_open(possible_opening, bet_hash))
         
     @commands.command()
     async def show(self, ctx):
@@ -158,22 +188,23 @@ class Bet(commands.Cog):
                 bet_hash = embed.footer.text.split(' ')[0]
                 bet = stored_bets[author]['bets'][bet_hash]
                 
-                emoji = str(reaction.emoji)
-                emojis = {value: key for key, value in self.choices[bet['bet_type']].items()}
+                if bet['status']:
+                    emoji = str(reaction.emoji)
+                    emojis = {value: key for key, value in self.choices[bet['bet_type']].items()}
 
-                if emoji in emojis:
-                    # ADD new choice
-                    if reacting_user not in bet['choices'][emojis[emoji]]:
-                        bet['choices'][emojis[emoji]].append(reacting_user)
-                    emojis.pop(emoji)
+                    if emoji in emojis:
+                        # ADD new choice
+                        if reacting_user not in bet['choices'][emojis[emoji]]:
+                            bet['choices'][emojis[emoji]].append(reacting_user)
+                        emojis.pop(emoji)
 
-                    # DEL old possible choice
-                    for other_emoji in emojis.values():
-                        if reacting_user in bet['choices'][other_emoji]:
-                            bet['choices'][other_emoji].remove(reacting_user)
-                            break
+                        # DEL old possible choice
+                        for other_emoji in emojis.values():
+                            if reacting_user in bet['choices'][other_emoji]:
+                                bet['choices'][other_emoji].remove(reacting_user)
+                                break
 
-                    create_json_file(self.storage_path, stored_bets)
+                        create_json_file(self.storage_path, stored_bets)
 
     def check_correct_channel(self, ctx):
         if ctx.channel.id != self.bet_channel:
@@ -201,6 +232,7 @@ class Bet(commands.Cog):
                 'choices': {choice: [] for choice in self.choices[bet_type].keys()}
             }
     
+
     def format_output_create(self, exisiting_bet: bool, bet_hash: str = '', author: str = '', content: str = ''):
         if exisiting_bet:
             return 'prédiction déjà mémorisée'
@@ -258,6 +290,18 @@ class Bet(commands.Cog):
     def format_output_delete(self, deletion_return: bool, bet_hash: str):
         if deletion_return:
             return f'prédiction {bet_hash} supprimée'
+        else:
+            return f"aucune prédiction correspondate à l'utilisateur prédiction ou ID de la prédiction incorrect"
+        
+    def format_output_close(self, closing_return: bool, bet_hash: str):
+        if closing_return:
+            return f'prédiction {bet_hash} fermée'
+        else:
+            return f"aucune prédiction correspondate à l'utilisateur prédiction ou ID de la prédiction incorrect"
+        
+    def format_output_open(self, opening_return: bool, bet_hash: str):
+        if opening_return:
+            return f'prédiction {bet_hash} ouverte'
         else:
             return f"aucune prédiction correspondate à l'utilisateur prédiction ou ID de la prédiction incorrect"
 

@@ -30,6 +30,23 @@ class Bet(commands.Cog):
         }
         self.default_bet_type = 'binary'
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        stored_bets = read_json_file(self.storage_path)
+        ctx = self.bot.get_channel(int(self.bet_channel))
+
+        pins = await ctx.pins()
+        for message in pins:
+            await message.unpin()
+
+        for author_id, author in stored_bets.items():
+            for bet_hash, bet in author['bets'].items():
+                if bet['status']:
+                    message = await ctx.send(embed=self.format_output_create(False, bet_hash, author_id, bet['content']))
+                    for choice_emoji in self.choices[bet['bet_type']].values():
+                        await message.add_reaction(choice_emoji)
+                    
+                    await message.pin()
 
     @commands.command()
     async def create(self, ctx, *, content: str):
@@ -232,6 +249,8 @@ class Bet(commands.Cog):
                 'choices': {choice: [] for choice in self.choices[bet_type].keys()}
             }
     
+    
+
 
     def format_output_create(self, exisiting_bet: bool, bet_hash: str = '', author: str = '', content: str = ''):
         if exisiting_bet:

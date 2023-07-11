@@ -158,7 +158,15 @@ class Bet(commands.Cog):
             stored_bets[author]['bets'][bet_hash]['status'] = True
             create_json_file(self.storage_path, stored_bets)
 
-        await ctx.send(self.format_output_open(possible_opening, bet_hash))
+            bet = stored_bets[author]['bets'][bet_hash]
+            message = await ctx.send(embed=self.format_output_create(False, bet_hash, author, bet['content']))
+            for choice_emoji in self.choices[bet['bet_type']].values():
+                await message.add_reaction(choice_emoji)
+            
+            await message.pin()
+            
+        else:
+            await ctx.send(self.format_output_open(possible_opening, bet_hash))
         
     @commands.command()
     async def show(self, ctx):

@@ -106,13 +106,44 @@ class Bet(commands.Cog):
         stored_bets = read_json_file(self.storage_path)
         author = str(ctx.author.id)
 
+        
         possible_closing = author in stored_bets and bet_hash in stored_bets[author]['bets']
-
+        
+        data = []
         if possible_closing:
             stored_bets[author]['bets'][bet_hash]['status'] = False
             create_json_file(self.storage_path, stored_bets)
 
-        await ctx.send(self.format_output_close(possible_closing, bet_hash))
+            author = stored_bets[author] 
+            bet = author['bets'][bet_hash]
+            timestamp = datetime.strptime(bet['timestamp'], '%Y-%m-%d %H:%M:%S')
+            
+            emojis = self.choices[bet['bet_type']]
+            choices = []
+            for emoji in emojis:
+                if len(bet['choices'][emoji]) > 0:
+                    choice_data = {}
+                    users = [await self.bot.fetch_user(user) for user in bet['choices'][emoji]]
+                    choice_data['users'] = [user.name for user in users]
+                    choice_data['choice_emoji'] = emojis[emoji]
+                    choice_data['choice_value'] = emoji
+                    choices.append(choice_data)
+
+            data.append({
+                'name': author['infos']['name'],
+                'avatar': author['infos']['avatar'],
+                'bets': [{
+                    'timestamp': timestamp.strftime("%Y-%m-%d"),
+                    'content': bet['content'],
+                    'choices': choices,
+                }]
+            })
+            
+            await ctx.send(embed=self.format_output_show(data)[0]) 
+        else:
+
+            await ctx.send(self.format_output_close(possible_closing, bet_hash))
+
 
     @commands.command()
     async def open(self, ctx, bet_hash):

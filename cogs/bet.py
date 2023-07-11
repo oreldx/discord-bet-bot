@@ -97,6 +97,15 @@ class Bet(commands.Cog):
             stored_bets[author]['bets'].pop(bet_hash)
             create_json_file(self.storage_path, stored_bets)
 
+            pins = await ctx.pins()
+            for message in pins:
+                if len(message.embeds) > 0:
+                    embed = message.embeds[0]
+                    author_embed = embed.footer.text.split(' ')[-1]
+                    bet_hash_embed = embed.footer.text.split(' ')[0]
+                    if bet_hash == bet_hash_embed and author == author_embed:
+                        await message.unpin()
+
         await ctx.send(self.format_output_delete(possible_deletion, bet_hash))
         
     @commands.command()
@@ -140,6 +149,15 @@ class Bet(commands.Cog):
             })
             
             await ctx.send(embed=self.format_output_show(data)[0]) 
+
+            pins = await ctx.pins()
+            for message in pins:
+                if len(message.embeds) > 0:
+                    embed = message.embeds[0]
+                    author_embed = embed.footer.text.split(' ')[-1]
+                    bet_hash_embed = embed.footer.text.split(' ')[0]
+                    if bet_hash == bet_hash_embed and author == author_embed:
+                        await message.unpin()
         else:
 
             await ctx.send(self.format_output_close(possible_closing, bet_hash))

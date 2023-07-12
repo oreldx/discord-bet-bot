@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir -r /bot/requirements.txt
 
 COPY . ./
 
-CMD ["python", "/bot.py"]
+CMD ["python", "bot.py"]

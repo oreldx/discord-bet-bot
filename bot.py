@@ -18,8 +18,6 @@ bot = commands.Bot(command_prefix="!", intents=intents, help_command=commands.Mi
 
 bot.help_command = MyNewHelp()
 
-config = configparser.ConfigParser()
-config.read('creds/creds.ini')
 load_dotenv()
 token = os.environ.get("DISCORD_TOKEN") 
 

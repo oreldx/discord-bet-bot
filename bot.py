@@ -1,3 +1,5 @@
+from utils.help import MyNewHelp
+
 import os
 import asyncio
 import configparser
@@ -12,12 +14,15 @@ from discord.ext import commands, tasks
 intents = discord.Intents.all()
 intents.members = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents, help_command=commands.MinimalHelpCommand())
+
+bot.help_command = MyNewHelp()
 
 config = configparser.ConfigParser()
 config.read('creds/creds.ini')
 load_dotenv()
 token = os.environ.get("DISCORD_TOKEN") 
+
 
 @bot.event
 async def load():

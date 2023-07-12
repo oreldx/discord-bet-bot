@@ -9,7 +9,7 @@ from datetime import datetime
 import locale
 import random
 
-from utils import read_json_file, create_json_file
+from utils.utils import read_json_file, create_json_file
 
 
 class Bet(commands.Cog):

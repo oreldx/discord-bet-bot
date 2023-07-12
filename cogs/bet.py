@@ -150,6 +150,7 @@ class Bet(commands.Cog):
             
             await ctx.send(embed=self.format_output_show(data)[0]) 
 
+            author = str(ctx.author.id)
             pins = await ctx.pins()
             for message in pins:
                 if len(message.embeds) > 0:

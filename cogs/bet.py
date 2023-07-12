@@ -50,6 +50,7 @@ class Bet(commands.Cog):
 
     @commands.command()
     async def create(self, ctx, *, content: str):
+        """Permet de créer une prédiction avec son contenu"""
         self.check_correct_channel(ctx)
 
         stored_bets = read_json_file(self.storage_path)
@@ -85,8 +86,8 @@ class Bet(commands.Cog):
 
     @commands.command()
     async def delete(self, ctx, bet_hash):
+        """Permet de supprimer une prédiction avec ID"""
         self.check_correct_channel(ctx)
-
 
         stored_bets = read_json_file(self.storage_path)
         author = str(ctx.author.id)
@@ -110,6 +111,7 @@ class Bet(commands.Cog):
         
     @commands.command()
     async def close(self, ctx, bet_hash):
+        """Permet de terminer une prédiction grâce à son ID et d'afficher le résultat"""
         self.check_correct_channel(ctx)
 
         stored_bets = read_json_file(self.storage_path)
@@ -165,6 +167,7 @@ class Bet(commands.Cog):
 
     @commands.command()
     async def open(self, ctx, bet_hash):
+        """Permet de re-démarrer une prédiction grâce à son ID et de donner l'accès au vote"""
         self.check_correct_channel(ctx)
 
         stored_bets = read_json_file(self.storage_path)
@@ -188,6 +191,7 @@ class Bet(commands.Cog):
         
     @commands.command()
     async def show(self, ctx):
+        """Permet d'afficher les résultats de toutes LES prédictions en cours et terminées"""
         self.check_correct_channel(ctx)
 
         stored_bets = read_json_file(self.storage_path)
@@ -227,6 +231,7 @@ class Bet(commands.Cog):
 
     @commands.command()
     async def list(self, ctx):
+        """Permet de lister toutes TES prédictions avec leur ID et statut"""
         self.check_correct_channel(ctx)
 
         stored_bets = read_json_file(self.storage_path)
